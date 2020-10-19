@@ -1,0 +1,150 @@
+<!--
+Things to add
+-Trace saving
+-Triple pendulums
+-general pendulums
+-Audible pendulums
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Double Pendulum</title>
+        <script type="text/javascript" src="js/ngine2.0.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.pendulum.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.colortrail.js"></script>
+        
+    </head>
+    <body>
+        <?php
+        // put your code here
+        ?>
+        <canvas id="canvas" width="400" height="400" oncontextmenu="return false"></canvas>
+        </br>
+        <input id="fade" type="checkbox" value="true"/>Fade</br>
+        <input id="l1" type="text" value="30"/>Length#1</br>
+        <input id="l2" type="text" value="30"/>Length#2</br>
+        <input id="m1" type="text" value="4"/>Mass#1</br>
+        <input id="m2" type="text" value="1"/>Mass#2</br>
+        <input id="trail" type="text" value="250"/>Trail Length</br>
+        <script type="text/javascript">
+                var c=document.getElementById('canvas');
+                var cxt=c.getContext("2d");
+                //var world = initializeMissileCommand(cxt,c[0]);
+                var world=new Ngine(cxt,400,400,"#BBBBBB");
+                var doubPend = new DoublePendulum({pos:[200,200],angle1:1,angle2:3,len1:30,len2:30,m1:4,m2:1,size:5});
+                //var colTrail1 = new ColorTrail({pos:[0,0],maxLength:100,color:"#DD0000",size:1});
+                var colTrail2 = new ColorTrail({pos:[0,0],maxLength:250,fade:false,color:"#0000DD",size:1});
+                world.addNject(doubPend);
+                //world.addNject(colTrail1);
+                world.addNject(colTrail2);
+                var UI=new Interface(c);
+                var moving = false;
+                UI.mouseMove=function(e){
+                    var xy=UI.getMouseXY(e);
+                    if(moving){
+                        xy=diffV(xy,[200,200]);
+                        xy=[xy[1],xy[0]];
+                        var theta1,theta2;
+                        var l1=doubPend.getL1();
+                        var l2=doubPend.getL2();
+                        if(lengthV(xy)<l1+l2){
+                            theta2 = 2*Math.atan(Math.sqrt(((l1+l2)*(l1+l2)-(xy[0]*xy[0]+xy[1]*xy[1]))/((xy[0]*xy[0]+xy[1]*xy[1]) - (l1-l2)*(l1-l2))));
+                            theta1 = Math.atan2(xy[1],xy[0])-Math.atan2(l2*Math.sin(theta2),l1+l2*Math.cos(theta2));
+                            //$("#nergy").text(theta1+","+theta2);
+                            theta2 = theta2+theta1;
+                            
+                        }
+                        else{
+                            theta1=Math.atan2(xy[1],xy[0]);
+                            theta2=theta1;
+                        }
+                        doubPend.angle1=theta1;
+                        doubPend.angle2=theta2;
+                        doubPend.angv1=0;
+                        doubPend.angv2=0;
+                    }
+                }
+/*                UI.keyDown=function(e){
+                    var xy = UI.getMouseXY(e);
+                    if(e.keyCode==66){
+                        world.addNject(new Boid({pos:xy,vel:[0,0],size:4}));
+                    }
+                    if(e.keyCode==76){
+                        var njects = world.getNjects();
+                        for(var i=0;i<njects.length;i++){
+                            if(njects[i] instanceof Boid){
+                                njects[i].flockWeight=-njects[i].flockWeight;
+                                //njects[i].goalWeight=Math.abs(njects[i].goalWeight - 5);
+                            }
+                        }
+                    }
+
+                }*/
+                UI.mouseDown=function(e){
+                    var xy=UI.getMouseXY(e);
+                    if(e.which == 1){
+                        moving = true;
+                        doubPend.pause=true;
+                    }
+//                    world.addNject(new Explosion({pos:xy,size:5,numDebris:6,numParts:80,numSmoke:2,time:100,dir:timesV(2,randV()),force:[0,.1]}));
+                }
+                UI.mouseUp=function(e){
+                    if(e.which==1){
+                        doubPend.pause = false;
+                        moving = false;
+                    }
+                }
+
+
+                var step = function(){
+                    world.step();
+                    //colTrail1.addPoint(doubPend.getP1());
+                    colTrail2.addPoint(doubPend.getP2());
+                    colTrail2.fade=(document.getElementById("fade").checked)
+                }
+                l1 = document.getElementById("l1")
+                l1.addEventListener('change',function(){
+                    var set=Number(l1.value);
+                    if(!isNaN(set)){
+                        doubPend.setL1(set);
+                    }
+                },false);
+                l2 = document.getElementById("l2")
+                l2.addEventListener('change',function(){
+                    var set=Number(l2.value);
+                    if(!isNaN(set)){
+                        doubPend.setL2(set);
+                    }
+                },false);
+                m1 = document.getElementById("m1")
+                m1.addEventListener('change',function(){
+                    var set=Number(m1.value);
+                    if(!isNaN(set)){
+                        doubPend.setM1(set);
+                    }
+                },false);
+                m2 = document.getElementById("m2")
+                m2.addEventListener('change',function(){
+                    var set=Number(m2.value);
+                    if(!isNaN(set)){
+                        doubPend.setM2(set);
+                    }
+                },false);
+                trail = document.getElementById("trail")
+                trail.addEventListener('change',function(){
+                    var set=Number(trail.value);
+                    if(!isNaN(set)){
+                        colTrail2.maxLength=set;
+                    }
+                },false);
+                
+                setInterval(step,20);
+
+        </script>
+        
+        
+        
+    </body>
+</html>
+

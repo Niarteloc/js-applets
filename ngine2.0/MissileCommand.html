@@ -1,0 +1,37 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>MissileCommand</title>
+        </style>
+        <script type="text/javascript" src="js/ngine2.0.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.explosions.js"></script>
+        
+        <script type="text/javascript" src="js/ngine2.0.missileCommand.js"></script>
+        
+    </head>
+    <body>
+        <?php
+        // put your code here
+        ?>
+        <canvas id="canvas" width="400" height="400"></canvas>
+        
+        <script type="text/javascript">
+           
+                var c = document.getElementById('canvas')
+                var cxt=c.getContext("2d");
+                var world = initializeMissileCommand(cxt,c);
+                var step = function(){
+                    world.step();
+                    //$("#nergy").text(Math.round(line.getDist(pject))+"   "+Math.round(pject.getPos()[1]));
+                
+                }
+                setInterval(step,20);
+
+        </script>
+    </body>
+</html>

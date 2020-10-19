@@ -1,0 +1,88 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title></title>
+        <script type="text/javascript" src="js/ngine2.0.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.explosions.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.missileCommand.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.boids.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.phys.js"></script>
+    </head>
+    <body>
+        <?php
+        // put your code here
+        ?>
+        <canvas id="canvas" width="400" height="400" oncontextmenu="return false"></canvas>
+        
+        <script type="text/javascript">
+                var c=document.getElementById('canvas');
+                var cxt=c.getContext("2d");
+                //var world = initializeMissileCommand(cxt,c[0]);
+                var world=new Ngine(cxt,400,400,"#BBBBBB");
+                for(var i =0;i<30;i++){
+                    world.addNject(new Boid({pos:[Math.random()*400,Math.random()*400],vel:[Math.random(),Math.random()],size:4}));                
+                }
+                var UI=new Interface(c);
+                var lineDrawn=null;
+                UI.mouseMove=function(e){
+                    var xy=UI.getMouseXY(e);
+                    if(lineDrawn){
+                        lineDrawn.endPos=xy;
+                    }
+                }
+                UI.keyDown=function(e){
+                    var xy = UI.getMouseXY(e);
+                    if(e.keyCode==66){
+                        world.addNject(new Boid({pos:xy,vel:[0,0],size:4}));
+                    }
+                    if(e.keyCode==76){
+                        var njects = world.getNjects();
+                        for(var i=0;i<njects.length;i++){
+                            if(njects[i] instanceof Boid){
+                                njects[i].flockWeight=-njects[i].flockWeight;
+                                //njects[i].goalWeight=Math.abs(njects[i].goalWeight - 5);
+                            }
+                        }
+                    }
+
+                }
+                UI.mouseDown=function(e){
+                    var xy=UI.getMouseXY(e);
+                    if(e.which != 1){
+                        var njects = world.getNjects();
+                        for(var i=0;i<njects.length;i++){
+                            if(e.shiftKey){
+                                if(njects[i] instanceof Boid)njects[i].addGoal(xy);
+                            }
+                            else{
+                                if(njects[i] instanceof Boid)njects[i].setGoal(xy);
+                            }
+                        }
+                        
+                    }
+                    else{
+                        lineDrawn = new Line({pos:xy,endPos:xy,size:5});
+                        world.addNject(lineDrawn);
+                    }
+//                    world.addNject(new Explosion({pos:xy,size:5,numDebris:6,numParts:80,numSmoke:2,time:100,dir:timesV(2,randV()),force:[0,.1]}));
+                }
+                UI.mouseUp=function(e){
+                    if(e.which==1){
+                        lineDrawn = null;
+                    }
+                }
+
+                var step = function(){
+                    world.step();
+                
+                }
+                setInterval(step,20);
+        </script>
+        <div id="nergy">0</div>
+    </body>
+</html>

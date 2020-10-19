@@ -1,0 +1,109 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title></title>
+        <script type="text/javascript" src="js/ngine2.0.js"></script>
+        <script type="text/javascript" src="../js/mathKit.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.robotArm.js"></script>
+        <script type="text/javascript" src="js/ngine2.0.boids.js"></script>
+        
+    </head>
+    <body>
+        <?php
+        // put your code here
+        ?>
+                <canvas id="canvas" width="400" height="400" oncontextmenu="return false"></canvas>
+<input id="l1" type="text" value="8"/>Link Numbers</br>
+        <input id="l2" type="text" value="30"/>Link Length</br>
+        <div id="debug"></div>
+        <script type="text/javascript">
+			var c=document.getElementById('canvas');
+            var cxt=c.getContext("2d");
+            var world=new Ngine(cxt,400,400,"#BBBBBB");
+            for(var i =0;i<30;i++){
+                world.addNject(new Boid({pos:[Math.random()*400,Math.random()*400],vel:[Math.random(),Math.random()],size:4}));                
+            }
+            var robotLinks = [
+                new RobotLink('revolute',30),
+                new RobotLink('revolute',30),
+                new RobotLink('revolute',10)
+            ];
+            var robot = new RobotArm({links:robotLinks,pos:[200,200],size:3});
+            world.addNject(robot);
+            robot.initializeLinks();
+            robot.getTransform();
+            robot.getJacobian();
+            console.log(robot.getJacobian());
+            var currentTarget = [
+                [1,0,0],
+                [0,1,80],
+                [0,0,1],
+            ];
+            robot.setTheta([0,0,0]);
+            robot.step = function(){
+                var curTheta = robot.getTheta()
+                var deltaTheta = timesV(0.1,robot.resRateStep(currentTarget));
+                robot.setTheta(sumV(curTheta,deltaTheta));
+            }
+            
+            UI = new Interface(c);
+			
+            UI.mouseMove=function(e){
+                var xy=UI.getMouseXY(e);
+                //$("#debug").text("dist To:")
+                //alert(robot.distTo(xy))
+                var velocity = [xy[0]-robot.pos[0]-currentTarget[0][2],xy[1]-robot.pos[1]-currentTarget[1][2]];
+                if(lengthV(velocity)>3){
+                    var theta = Math.atan2(velocity[1],velocity[0]);
+                    currentTarget=[
+                        [Math.cos(theta),-Math.sin(theta),xy[0]-robot.pos[0]],
+                        [Math.sin(theta),Math.cos(theta),xy[1]-robot.pos[1]],
+                        [0,0,1],
+                    ];
+                }
+            }
+            var step = function(){
+                world.step();
+            
+            }
+            var lengths = 30;
+            var linkNum = 8;
+            l1 = document.getElementById("l1")
+            l1.addEventListener('change',function(){
+                var set=Number(l1.value);
+                if(!isNaN(set)){
+                    linkNum=set;
+                    var links=[];
+                    for(var i = 0;i<linkNum;i++){
+                        links.push(new RobotLink('revolute',lengths));
+                    }
+                    robot.links = links;
+                    robot.initializeLinks();
+                    robot.setTheta($V([.1,0,0]));
+            
+                }
+            },false);
+            l2 = document.getElementById("l2")
+            l2.addEventListener('change',function(){
+                var set=Number(l2.value);
+                if(!isNaN(set)){
+                    lengths=set;
+                    var links=[];
+                    for(var i = 0;i<linkNum;i++){
+                        links.push(new RobotLink('revolute',lengths));
+                    }
+                    robot.links = links;
+                    robot.initializeLinks();
+                    robot.setTheta($V([.1,0,0]));
+            
+                }
+            });
+            setInterval(step,20);
+	</script>
+    </body>
+</html>
