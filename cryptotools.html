@@ -1,0 +1,47 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Crypto-Tools</title>
+    <meta name="description" content="Simple Crytography Tools">
+    <meta name="author" content="Coletrain">
+
+
+
+</head>
+
+<body>
+    <form>
+    <label for="cipher-key">Cipher Key</label><br>
+    <input id="cipher-key" type="text" value="zebra"><br>
+    <label for="cipher-message">Cipher Text</label><br>
+    <textarea id="cipher-message" rows="4" cols="50">Cipher message
+    </textarea><br>
+    <input id="encode" onclick="encodeMessage()" type="button" value="Encode">
+    <input id="decode" onclick="decodeMessage()" type="button" value="Decode">
+    </form>
+    <div id="cipher-output">
+    </div>
+    <script src="js/cryptoTools.js"></script>
+    <script>
+        function encodeMessage() {
+            var keyword = document.getElementById("cipher-key").value;
+            var message = document.getElementById("cipher-message").value;
+            message = message.replace(/\s/g,'');
+            var transposition = cryptoTools.keywordToTransposition(keyword);
+            var encodedMessage = cryptoTools.applyTransposition(message,transposition);
+            document.getElementById("cipher-output").innerHTML = encodedMessage;
+        }
+        function decodeMessage() {
+            var keyword = document.getElementById("cipher-key").value;
+            var message = document.getElementById("cipher-message").value;
+            message = message.replace(/\s/g,'');
+            var transposition = cryptoTools.inversePermutation(cryptoTools.keywordToTransposition(keyword));
+            var encodedMessage = cryptoTools.applyTransposition(message,transposition);
+            document.getElementById("cipher-output").innerHTML = encodedMessage;
+        }
+    </script>
+</body>
+</html>
