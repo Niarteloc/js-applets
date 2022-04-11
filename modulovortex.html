@@ -1,0 +1,34 @@
+<html>
+<head>
+</head>
+<body>
+<canvas id="display" width="400" height="400" ></canvas>
+<input type="range" min="1" max="100 value="2" id="multiplier">
+<input type="range" min="10" max="1000" value="100" id="modulo">
+
+<script>
+function drawPretty() {
+    var modulo = document.getElementById('modulo').value;
+    var multiplier = document.getElementById('multiplier').value;
+    var context = document.getElementById('display').getContext('2d');
+    
+    context.lineWidth = 1.5 * 100/modulo;
+    context.clearRect(0,0,400,400);
+    context.beginPath();
+    context.arc( 200, 200, 200, 0, 2 * Math.PI );
+    
+    for ( var i = 0; i < modulo; i++ ) {
+        context.moveTo(200 + 200*Math.cos(2*Math.PI*i/modulo), 200 + 200*Math.sin(2*Math.PI*i/modulo));
+        var target = (i*multiplier) % modulo;
+        context.lineTo(200 + 200*Math.cos(2*Math.PI*target/modulo), 200 + 200*Math.sin(2*Math.PI*target/modulo));
+        
+    }
+    context.stroke();
+}
+var modulo = document.getElementById('modulo');
+var multiplier = document.getElementById('multiplier');
+
+modulo.oninput = drawPretty;
+multiplier.oninput = drawPretty;
+</script>
+</body>
