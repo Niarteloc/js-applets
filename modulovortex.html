@@ -1,29 +1,129 @@
 <html>
 <head>
+<style>
+#display {
+    display: block;
+    width: 90vw;
+    height: 90vw;
+    max-height: 80vh;
+    max-width: 80vh;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.slidecontainer {
+  width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: #04AA6D; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: #04AA6D; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+}
+
+</style>
 </head>
 <body>
 <canvas id="display" width="400" height="400" ></canvas>
-<input type="range" min="1" max="100 value="2" id="multiplier">
-<input type="range" min="10" max="1000" value="100" id="modulo">
+<br>
+<input type="range" min="1" max="100 value="2" class="slider" id="multiplier">
+<br>
+<input type="range" min="10" max="1000" value="100" class="slider" id="modulo">
 
 <script>
+var width = document.getElementById('display').width;
+
+var gradientBlues = [[0,[0,0.2,0.4]],[1,[0,0.5,0.9]]];
+var gradientRainbow = [[0,[1,0,0]],[0.2,[1,1,0]],[0.4,[0,1,0]],[0.6,[0,1,1]],[0.8,[0,0,1]],[1,[1,0,1]]];
+
+
+function interpolateRGB( stops, value ) {
+    var start = -1;
+    var end = 0;
+    while ( end < stops.length && value > stops[end][0] ) {
+        start++;
+        end++;
+    }
+    if ( end == 0 ) {
+        return stops[end][1];
+    }
+    else if ( end == stops.length ) {
+        return stops[start][1];
+    }
+    else {
+        var color1 = stops[start][1];
+        var val1 = stops[start][0];
+        var color2 = stops[end][1];
+        var val2 = stops[end][0];
+        
+        var proportion = (value - val1) / (val2 - val1);
+        
+        var red = color1[0] * (1 - proportion) + color2[0] * proportion;
+        var green = color1[1] * (1 - proportion) + color2[1] * proportion;
+        var blue = color1[2] * (1 - proportion) + color2[2] * proportion;
+        return [red,green,blue];
+    }
+}
+
 function drawPretty() {
+    var canvas = document.getElementById('display');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.width;
+    width = canvas.width;
     var modulo = document.getElementById('modulo').value;
     var multiplier = document.getElementById('multiplier').value;
-    var context = document.getElementById('display').getContext('2d');
+    var context = canvas.getContext('2d');
     
-    context.lineWidth = 1.5 * 100/modulo;
-    context.clearRect(0,0,400,400);
+    context.lineWidth = 0.75 * width/modulo;
+    context.clearRect(0,0,width,width);
     context.beginPath();
-    context.arc( 200, 200, 200, 0, 2 * Math.PI );
+    context.arc( width/2, width/2, width/2, 0, 2 * Math.PI );
+    context.stroke();
     
     for ( var i = 0; i < modulo; i++ ) {
-        context.moveTo(200 + 200*Math.cos(2*Math.PI*i/modulo), 200 + 200*Math.sin(2*Math.PI*i/modulo));
+        context.beginPath();
+        var start_x = width/2 + (width/2)*Math.cos(2*Math.PI*i/modulo);
+        var start_y = width/2 + (width/2)*Math.sin(2*Math.PI*i/modulo);
+        context.moveTo(start_x, start_y);
         var target = (i*multiplier) % modulo;
-        context.lineTo(200 + 200*Math.cos(2*Math.PI*target/modulo), 200 + 200*Math.sin(2*Math.PI*target/modulo));
-        
+        var target_x = width/2 + (width/2)*Math.cos(2*Math.PI*target/modulo);
+        var target_y = width/2 + (width/2)*Math.sin(2*Math.PI*target/modulo);
+        context.lineTo(target_x, target_y);
+        length = Math.sqrt((start_x-target_x)*(start_x-target_x) + (start_y-target_y)*(start_y-target_y)) / width;
+        var color = interpolateRGB(gradientRainbow, 1-length);
+        context.strokeStyle = "rgba("+255*color[0]+","+255*color[1]+","+255*color[2]+","+(1-.2*length)+")";
+        context.stroke();
     }
-    context.stroke();
+    
 }
 var modulo = document.getElementById('modulo');
 var multiplier = document.getElementById('multiplier');
