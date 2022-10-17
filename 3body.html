@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3 Body Problem</title>
+  <style>
+    #display {
+      display: block;
+      width: 90vw;
+      height: 90vw;
+      max-height: 80vh;
+      max-width: 80vh;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .slidecontainer {
+      width: 100%; /* Width of the outside container */
+    }
+
+    /* The slider itself */
+    .slider {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 100%; /* Full-width */
+      height: 5vh; /* Specified height */
+      background: #d3d3d3; /* Grey background */
+      outline: none; /* Remove outline */
+      opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+      -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      transition: opacity .2s;
+    }
+
+    /* Mouse-over effects */
+    .slider:hover {
+      opacity: 1; /* Fully shown on mouse-over */
+    }
+
+    /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none; /* Override default look */
+      appearance: none;
+      width: 5vh; /* Set a specific slider handle width */
+      height: 5vh; /* Slider handle height */
+      background: #04AA6D; /* Green background */
+      cursor: pointer; /* Cursor on hover */
+    }
+
+    .slider::-moz-range-thumb {
+      width: 5vh; /* Set a specific slider handle width */
+      height: 5vh; /* Slider handle height */
+      background: #04AA6D; /* Green background */
+      cursor: pointer; /* Cursor on hover */
+    }
+
+  </style>
+  <script src="js/mathKit.js"></script>
+</head>
+<body>
+<canvas id="display" width="400" height="400" ></canvas>
+<br>
+<input type="range" min="1" max="100" value="10" class="slider" id="velocity">
+<br>
+<input type="range" min="1" max="100" value="50" class="slider" id="radius">
+
+<script>
+  const RADCONST = 30;
+  const VELCONST = 50;
+  const deltaT = 0.020;
+  let body1 = [0,0,0,0];
+  let body2 = [0,0,0,0];
+  let body3 = [0,0,0,0];
+  let canvas = document.getElementById("display");
+  let context = canvas.getContext("2D");
+  let velSlider = document.getElementById("velocity");
+  let radSlider = document.getElementById("radius");
+
+  function initBody(){
+    let radius = radSlider.value * RADCONST / radSlider.max;
+    let velocity = velSlider.value * VELCONST / velSlider.max;
+    body1 = [200, 200 - radius, velocity, 0];
+    body2 = [200 + radius*Math.sin(2*Math.PI/3),
+             200 - radius*Math.cos(2*Math.PI/3),
+             velocity*Math.cos(2*Math.PI/3),
+             velocity*Math.sin(2*Math.PI/3)];
+    body3= [200 + radius*Math.sin(4*Math.PI/3),
+            200 - radius*Math.cos(4*Math.PI/3),
+            velocity*Math.cos(4*Math.PI/3),
+            velocity*Math.sin(4*Math.PI/3)];
+  }
+
+  function getForce(bodyMain, bodyOther){
+    let forceTotal = [0,0];
+    for (let body of bodyOther) {
+      let distX = body[0] - bodyMain[0];
+      let distY = body[1] - bodyMain[1];
+      let dist = Math.sqrt(distX*distX + distY*distY);
+      forceTotal[0] += distX/(dist*dist*dist);
+      forceTotal[1] += distY/(dist*dist*dist);
+    }
+    return forceTotal;
+  }
+
+  function b1vx(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b1,[b2,b3]);
+    return F[0];
+  }
+  function b1vy(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b1,[b2,b3]);
+    return F[1];
+  }
+  function b2vx(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b2,[b1,b3]);
+    return F[0];
+  }
+  function b2vy(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b2,[b1,b3]);
+    return F[1];
+  }
+  function b3vx(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b3,[b2,b1]);
+    return F[0];
+  }
+  function b3vy(x,t){
+    let b1 = x.slice(0,4);
+    let b2 = x.slice(4,8);
+    let b3 = x.slice(8,12);
+    let F = getForce(b3,[b2,b1]);
+    return F[1];
+  }
+  function b1px(x,t){return x[2]}
+  function b1py(x,t){return x[3]}
+  function b2px(x,t){return x[6]}
+  function b2py(x,t){return x[7]}
+  function b3px(x,t){return x[10]}
+  function b3py(x,t){return x[11]}
+  let motionEQ = [
+          b1px,b1py,b1vx,b1vy,
+          b2px,b2py,b2vx,b2vy,
+          b3px,b3py,b3vx,b3vy
+  ];
+  function stepBodies() {
+    let x = body1.concat(body2,body3);
+    let x_next = RungeKuttaSolve(x,0,motionEQ,deltaT);
+    body1 = x_next.slice(0,4);
+    body2 = x_next.slice(4,8);
+    body3 = x_next.slice(8,12);
+    drawBodies();
+  }
+  function drawBodies() {
+    context.fillStyle = "black";
+
+    context.beginPath();
+    context.arc(body1[0], body1[1], 5, 0, Math.PI*2);
+    context.fill();
+
+    context.beginPath();
+    context.arc(body2[0], body2[1], 5, 0, Math.PI*2);
+    context.fill();
+
+    context.beginPath();
+    context.arc(body3[0], body3[1], 5, 0, Math.PI*2);
+    context.fill();
+  }
+
+  initBody();
+  drawBodies();
+  //window.setInterval(stepBodies, 20);
+</script>
+</body>
+</html>
